@@ -4,7 +4,7 @@
       <div id="title">Add new hotel</div>
       <v-form ref="form" v-model="valid" lazy-validation>
         <v-row>
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="12">
             <v-text-field
               v-model="name"
               :rules="nameRules"
@@ -30,62 +30,44 @@
           </v-col>
 
           <!-- column input photos -->
-          <v-col cols="6" md="2">
-            <v-file-input
-              v-model="files"
-              label="Foto"
-              multiple
-              prepend-icon="mdi-camera"
-            >
-              <template v-slot:selection="{ text }">
-                <v-chip small label color="primary">
-                  {{ text }}
-                </v-chip>
-              </template>
-            </v-file-input>
-            <v-file-input
-              v-model="files"
-              label="Foto"
-              multiple
-              prepend-icon="mdi-camera"
-            >
-              <template v-slot:selection="{ text }">
-                <v-chip small label color="primary">
-                  {{ text }}
-                </v-chip>
-              </template>
-            </v-file-input>
-            <v-file-input
-              v-model="files"
-              label="Foto"
-              multiple
-              prepend-icon="mdi-camera"
-            >
-              <template v-slot:selection="{ text }">
-                <v-chip small label color="primary">
-                  {{ text }}
-                </v-chip>
-              </template>
-            </v-file-input>
-          </v-col>
-
-          <!-- column input by -->
-          <v-col cols="6" md="2">
-            <v-text-field
-              v-model="fotoBy"
-              label="Photo by"
-              required
-            ></v-text-field>
-            <v-text-field
-              v-model="fotoBy"
-              label="Photo by"
-              required
-            ></v-text-field>
-            <v-text-field
-              v-model="fotoBy"
-              label="Photo by"
-              required
-            ></v-text-field>
+          <v-col cols="12" md="3" v-for="(Image, i) in Images" :key="i">
+            <v-card elevation="8">
+              <v-img aspect-ratio="2" :src="Image.url">
+                <v-card-title class="align-end" v-if="Image.url == null"
+                  >Upload some image</v-card-title
+                >
+              </v-img>
+              <v-card-actions>
+                <v-row class="justify-space-between">
+                  <v-col cols="6" md="6">
+                    <v-file-input
+                      v-model="Image.name"
+                      label="Foto"
+                      accept="image/*"
+                      prepend-icon="mdi-camera"
+                      @change="onFilePicked(i)"
+                      @click:clear="onClear(i)"
+                      truncate-length="8"
+                    >
+                      <template v-slot:selection="{ text }">
+                        <v-chip small label color="primary">
+                          {{ text }}
+                        </v-chip>
+                      </template>
+                    </v-file-input>
+                  </v-col>
+                  <v-col cols="6" md="6">
+                    <v-text-field
+                      v-model="Image.by"
+                      label="Photo by"
+                      :rules="[(v) => !!v || 'Photo by is required']"
+                      width="10"
+                      required
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-card-actions>
+            </v-card>
           </v-col>
         </v-row>
 
@@ -109,7 +91,7 @@
             contain
             height="100"
             :src=""> -->
-            <v-card-title v-text="hotel.name"></v-card-title>
+            <v-card-title v-text="hotel.name" />
             <v-card-subtitle>
               <div class="text--primary">
                 {{ hotel.address }}
@@ -129,7 +111,7 @@
   </div>
 </template>
 <script>
-import { db } from "../firebaseConfig";
+import { db, storage } from "../firebaseConfig";
 
 export default {
   created() {
@@ -153,22 +135,59 @@ export default {
       starRules: [(v) => !!v || "Star is required"],
       address: "",
       addressRules: [(v) => !!v || "Address is required"],
-      files: [],
+      files: null,
       hotels: [],
+      imageUrl: "",
+      Images: [
+        {
+          name: null,
+          by: null,
+          url: null,
+        },
+      ],
     };
   },
 
   methods: {
+    onFilePicked(i) {
+      const files = this.Images[i].name;
+      const fr = new FileReader();
+
+      fr.readAsDataURL(files);
+      fr.addEventListener("load", () => {
+        this.Images[i].url = fr.result;
+      });
+    },
+
+    onClear(i) {
+      this.Images[i].url = null;
+    },
     validate() {
-      if (this.$refs.form.validate()) {
-        var hotel = db.ref("hotel/");
-        hotel.push().set({
-          name: this.name,
-          star: this.star,
-          address: this.address,
+      const files = this.Images[0].name;
+      const path = "value/" + files.name;
+      storage
+        .ref(path)
+        .put(files)
+        .then((snapshot) => {
+          if (snapshot.state == "success") {
+            storage
+              .ref(path)
+              .getDownloadURL()
+              .then((url) => {
+                console.log(url);
+              });
+          }
         });
-         this.$refs.form.reset()
-      }
+      // this.Images.push({ name: null, by: null, url: null });
+      // if (this.$refs.form.validate()) {
+      //   var hotel = db.ref("hotel/");
+      //   hotel.push().set({
+      //     name: this.name,
+      //     star: this.star,
+      //     address: this.address,
+      //   });
+      //   this.$refs.form.reset();
+      // }
     },
   },
 };
