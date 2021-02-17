@@ -33,10 +33,32 @@
           <v-col cols="12" md="3" v-for="(Image, i) in Images" :key="i">
             <v-card elevation="8">
               <v-img aspect-ratio="2" :src="Image.url">
-                <v-card-title class="align-end" v-if="Image.url == null"
-                  >Upload some image</v-card-title
-                >
+                <v-card-title class="align-end justify-end">
+                  <v-btn
+                    class="mx-2"
+                    fab
+                    small
+                    dark
+                    color="pink"
+                    v-if="i != Images.length || i != 0"
+                    @click="removeField(i)"
+                  >
+                    <v-icon dark> mdi-delete </v-icon>
+                  </v-btn>
+                  <v-btn
+                    class="mx-2"
+                    fab
+                    small
+                    dark
+                    color="indigo"
+                    v-if="i == Images.length-1"
+                    @click="addField"
+                  >
+                    <v-icon dark> mdi-plus </v-icon>
+                  </v-btn>
+                </v-card-title>
               </v-img>
+
               <v-card-actions>
                 <v-row class="justify-space-between">
                   <v-col cols="6" md="6">
@@ -74,7 +96,7 @@
         <v-btn
           :disabled="!valid"
           color="success"
-          class="mr-4 left"
+          class="mt-8"
           @click="validate"
         >
           Submit
@@ -87,10 +109,6 @@
       <v-row>
         <v-col v-for="(hotel, i) in hotels" :key="hotel[i]" cols="6" md="2">
           <v-card class="mx-auto" max-width="344">
-            <!-- <v-img
-            contain
-            height="100"
-            :src=""> -->
             <v-card-title v-text="hotel.name" />
             <v-card-subtitle>
               <div class="text--primary">
@@ -102,8 +120,6 @@
                 >mdi-star</v-icon
               >
             </v-card-actions>
-
-            <!-- </v-img> -->
           </v-card>
         </v-col>
       </v-row>
@@ -111,6 +127,7 @@
   </div>
 </template>
 <script>
+
 import { db, storage } from "../firebaseConfig";
 
 export default {
@@ -178,7 +195,7 @@ export default {
               });
           }
         });
-      // this.Images.push({ name: null, by: null, url: null });
+
       // if (this.$refs.form.validate()) {
       //   var hotel = db.ref("hotel/");
       //   hotel.push().set({
@@ -188,6 +205,14 @@ export default {
       //   });
       //   this.$refs.form.reset();
       // }
+    },
+
+    addField() {
+      this.Images.push({ name: null, by: null, url: null });
+    },
+
+    removeField(i) {
+      this.Images.splice(i, 1);
     },
   },
 };
