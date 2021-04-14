@@ -61,9 +61,11 @@
       return {
         items: [
           { title: 'Dashboard', icon: 'mdi-view-dashboard' , link:"/"},
-          { title: 'Desination', icon: 'mdi-map-marker-radius', link:"/destination" },
-          { title: 'Hotel', icon: 'mdi-bed', link:"/hotel" }, 
-          { title: 'Desa wisata', icon: 'mdi-home', link:"/desa" },
+          { title: 'Accomodation', icon: 'mdi-bed', link:"/hotel" }, 
+          { title: 'Tourist Desination', icon: 'mdi-map-marker-radius', link:"/destination" },
+          { title: 'Tourism Village', icon: 'mdi-home', link:"/desa" },
+          { title: 'Art', icon: 'mdi-artstation', link:"/art" },
+          { title: 'Culinary', icon: 'mdi-food', link:"/culinary" },
         ],
         drawer: null
       }

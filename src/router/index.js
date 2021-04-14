@@ -4,6 +4,8 @@ import Home from '../views/Home.vue'
 import Hotel from '../views/Hotel.vue';
 import Destination from '../views/Destination.vue';
 import Desa from '../views/Desa.vue';
+import Art from '../views/Art.vue';
+import Culinary from '../views/Culinary.vue';
 
 Vue.use(VueRouter)
 
@@ -15,18 +17,28 @@ const routes = [
   },
   {
     path: '/destination',
-    name: 'Destination',
+    name: 'Tourist Destination',
     component: Destination
   },
   {
     path: '/hotel',
-    name: 'Hotel',
+    name: 'Accomodation',
     component: Hotel
   },
   {
     path: '/desa',
-    name: 'Desa',
+    name: 'Tourism Village',
     component: Desa
+  },
+  {
+    path: '/art',
+    name: 'Art',
+    component: Art
+  },
+  {
+    path: '/culinary',
+    name: 'Culinary',
+    component: Culinary
   }
 ]
 

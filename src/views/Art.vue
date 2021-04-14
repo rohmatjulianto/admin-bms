@@ -1,30 +1,22 @@
 <template>
   <div id="app">
     <v-container>
-      <div id="title">Add new hotel</div>
+      <div id="title">Add new Art</div>
       <v-form ref="form" v-model="valid" lazy-validation>
         <v-row>
           <v-col cols="12" md="12">
             <v-text-field
               v-model="name"
-              :rules="nameRules"
+              :rules="[(v) => !!v || 'Name is required']"
               label="Name"
               required
             ></v-text-field>
 
-            <v-text-field
-              v-model="star"
-              :rules="starRules"
-              label="Star (in number)"
-              type="number"
-              required
-            ></v-text-field>
-
             <v-textarea
-              v-model="address"
+              v-model="desc"
               auto-grow
-              :rules="addressRules"
-              label="Address"
+              :rules="[(v) => !!v || 'Description is required']"
+              label="Description"
               rows="1"
             ></v-textarea>
           </v-col>
@@ -40,7 +32,7 @@
                     small
                     dark
                     color="pink"
-                    v-if="i != Images.length"
+                    v-if="i != Images.length-1"
                     @click="removeField(i)"
                   >
                     <v-icon dark> mdi-delete </v-icon>
@@ -51,7 +43,7 @@
                     small
                     dark
                     color="indigo"
-                    v-if="i == Images.length - 1"
+                    v-if="i == Images.length"
                     @click="addField"
                   >
                     <v-icon dark> mdi-plus </v-icon>
@@ -97,8 +89,7 @@
           :disabled="!valid"
           color="success"
           class="mt-8"
-          @click="validate"
-        >
+          @click="validate">
           Submit
         </v-btn>
       </v-form>
@@ -107,20 +98,15 @@
     <!-- container loop result -->
     <v-container>
       <v-row>
-        <v-col v-for="(hotel, i) in hotels" :key="hotel[i]" cols="6" md="2">
+        <v-col v-for="(rs, i) in result" :key="rs[i]" cols="6" md="2">
           <v-card class="mx-auto" max-width="344">
-            <v-img :src="hotel.images[0].url"> </v-img>
-            <v-card-title v-text="hotel.name" />
+            <!-- <v-img :src="rs.images[0].url"> </v-img> -->
+            <v-card-title v-text="rs.name" />
             <v-card-subtitle>
               <div class="text--primary">
-                {{ hotel.address }}
+                {{ rs.desc }}
               </div>
             </v-card-subtitle>
-            <v-card-actions>
-              <v-icon v-for="n in parseInt(hotel.star)" :key="n"
-                >mdi-star</v-icon
-              >
-            </v-card-actions>
           </v-card>
         </v-col>
       </v-row>
@@ -129,33 +115,28 @@
 </template>
 <script>
 import { db, storage } from "../firebaseConfig";
-
+var firebasePath = "art/";
 export default {
   created() {
     var task = [];
-    db.ref("hotel/").on("value", function (params) {
+    db.ref(firebasePath).on("value", function (params) {
       task.splice(0);
       params.forEach((element) => {
         var child = element.val();
         task.push(child);
       });
     });
-    this.hotels = task;
+    this.result = task;
   },
 
   data() {
     return {
       valid: true,
       name: "",
-      nameRules: [(v) => !!v || "Name is required"],
-      star: "",
-      starRules: [(v) => !!v || "Star is required"],
-      address: "",
-      addressRules: [(v) => !!v || "Address is required"],
+      desc: "",
       files: null,
-      hotels: [],
-      imageUrl: "",
-      by:[],
+      result: [],
+      by: [],
       Images: [
         {
           name: null,
@@ -165,36 +146,34 @@ export default {
       ],
     };
   },
-
   methods: {
     onFilePicked(i) {
       if (window.FileReader) {
         const files = this.Images[i].name;
         const fr = new FileReader();
-
         fr.readAsDataURL(files);
         fr.addEventListener("load", () => {
           this.Images[i].url = fr.result;
         });
       }
     },
+
     onClear(i) {
       this.Images[i].url = null;
     },
+
     validate() {
       if (this.$refs.form.validate()) {
         var hotel = db.ref();
         var key = hotel.push().key;
 
-        for (let i = 0; i < this.Images.length; i++) {
-          this.uploadImage(hotel, key, i);
-        }
+        // for (let i = 0; i < this.Images.length; i++) {
+        //   this.uploadImage(hotel, key, i);
+        // }
 
-        hotel.child("hotel/" + key).set({
+        hotel.child(firebasePath + key).set({
           name: this.name,
-          star: this.star,
-          address: this.address,
-          images: this.Images
+          desc: this.desc
         });
       }
     },
@@ -210,25 +189,17 @@ export default {
               .ref(path)
               .getDownloadURL()
               .then((url) => {
-                hotel
-                  .child("hotel/" + key + "/images/" + i)
-                  .update({
-                    url: url
-                  })
+                hotel.child(this.firebasePath + key + "/images/" + i).update({
+                  url: url,
+                });
               });
-            // if (i != this.Images.length - 1) {
-            // } else {
-            //   this.Images[i].url = "";
-            //   this.Images[i].name = "";
-            //   this.Images[i].by = "";
-            // }
           }
         });
     },
 
     addField() {
       this.Images.push({ name: null, by: null, url: null });
-      this.by.push({by : null})
+      this.by.push({ by: null });
     },
 
     removeField(i) {

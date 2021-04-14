@@ -1,30 +1,22 @@
 <template>
   <div id="app">
     <v-container>
-      <div id="title">Add new hotel</div>
+      <div id="title">Add new Culinary</div>
       <v-form ref="form" v-model="valid" lazy-validation>
         <v-row>
           <v-col cols="12" md="12">
             <v-text-field
               v-model="name"
-              :rules="nameRules"
+              :rules="[(v) => !!v || 'Name is required']"
               label="Name"
               required
             ></v-text-field>
 
-            <v-text-field
-              v-model="star"
-              :rules="starRules"
-              label="Star (in number)"
-              type="number"
-              required
-            ></v-text-field>
-
             <v-textarea
-              v-model="address"
+              v-model="desc"
               auto-grow
-              :rules="addressRules"
-              label="Address"
+              :rules="[(v) => !!v || 'Description is required']"
+              label="Description"
               rows="1"
             ></v-textarea>
           </v-col>
@@ -146,15 +138,10 @@ export default {
   data() {
     return {
       valid: true,
+      firebasePath: "hotel",
       name: "",
-      nameRules: [(v) => !!v || "Name is required"],
-      star: "",
-      starRules: [(v) => !!v || "Star is required"],
-      address: "",
-      addressRules: [(v) => !!v || "Address is required"],
+      desc: "",
       files: null,
-      hotels: [],
-      imageUrl: "",
       by:[],
       Images: [
         {
@@ -190,7 +177,7 @@ export default {
           this.uploadImage(hotel, key, i);
         }
 
-        hotel.child("hotel/" + key).set({
+        hotel.child(this.firebasePath + key).set({
           name: this.name,
           star: this.star,
           address: this.address,
@@ -211,17 +198,11 @@ export default {
               .getDownloadURL()
               .then((url) => {
                 hotel
-                  .child("hotel/" + key + "/images/" + i)
+                  .child(this.firebasePath + key + "/images/" + i)
                   .update({
                     url: url
                   })
               });
-            // if (i != this.Images.length - 1) {
-            // } else {
-            //   this.Images[i].url = "";
-            //   this.Images[i].name = "";
-            //   this.Images[i].by = "";
-            // }
           }
         });
     },
