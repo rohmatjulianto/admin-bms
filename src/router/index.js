@@ -6,6 +6,7 @@ import Destination from '../views/Destination.vue';
 import Desa from '../views/Desa.vue';
 import Art from '../views/Art.vue';
 import Culinary from '../views/Culinary.vue';
+import Culture from '../views/Culture.vue';
 
 Vue.use(VueRouter)
 
@@ -39,6 +40,11 @@ const routes = [
     path: '/culinary',
     name: 'Culinary',
     component: Culinary
+  },
+  {
+    path: '/culture',
+    name: 'Culinary',
+    component: Culture
   }
 ]
 

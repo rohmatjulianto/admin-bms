@@ -1,6 +1,14 @@
 <template>
   <div id="app">
     <v-container>
+      <v-progress-linear
+        color="deep-purple accent-4"
+        indeterminate
+        rounded
+        :active="pbar"
+        height="3"
+      ></v-progress-linear>
+
       <div id="title">Add new Art</div>
       <v-form ref="form" v-model="valid" lazy-validation>
         <v-row>
@@ -32,7 +40,7 @@
                     small
                     dark
                     color="pink"
-                    v-if="i != Images.length-1"
+                    v-if="i != Images.length - 1 || i > 0"
                     @click="removeField(i)"
                   >
                     <v-icon dark> mdi-delete </v-icon>
@@ -43,7 +51,7 @@
                     small
                     dark
                     color="indigo"
-                    v-if="i == Images.length"
+                    v-if="i == Images.length - 1"
                     @click="addField"
                   >
                     <v-icon dark> mdi-plus </v-icon>
@@ -72,7 +80,7 @@
                   </v-col>
                   <v-col cols="6" md="6">
                     <v-text-field
-                      v-model="by[i]"
+                      v-model="Images[i].by"
                       label="Photo by"
                       :rules="[(v) => !!v || 'Photo by is required']"
                       width="10"
@@ -89,7 +97,8 @@
           :disabled="!valid"
           color="success"
           class="mt-8"
-          @click="validate">
+          @click="validate"
+        >
           Submit
         </v-btn>
       </v-form>
@@ -100,7 +109,7 @@
       <v-row>
         <v-col v-for="(rs, i) in result" :key="rs[i]" cols="6" md="2">
           <v-card class="mx-auto" max-width="344">
-            <!-- <v-img :src="rs.images[0].url"> </v-img> -->
+            <v-img v-if="rs.images[0] != null" :src="rs.images[0].url"> </v-img>
             <v-card-title v-text="rs.name" />
             <v-card-subtitle>
               <div class="text--primary">
@@ -131,12 +140,12 @@ export default {
 
   data() {
     return {
+      pbar: false,
       valid: true,
       name: "",
       desc: "",
       files: null,
       result: [],
-      by: [],
       Images: [
         {
           name: null,
@@ -163,21 +172,26 @@ export default {
     },
 
     validate() {
+      this.valid = false;
+      this.pbar = true;
       if (this.$refs.form.validate()) {
-        var hotel = db.ref();
-        var key = hotel.push().key;
+        var myRef = db.ref();
+        var key = myRef.push().key;
 
-        // for (let i = 0; i < this.Images.length; i++) {
-        //   this.uploadImage(hotel, key, i);
-        // }
-
-        hotel.child(firebasePath + key).set({
+        myRef.child(firebasePath + key).set({
           name: this.name,
-          desc: this.desc
+          desc: this.desc,
         });
+
+        for (let i = 0; i < this.Images.length; i++) {
+          this.uploadImage(myRef, key, i);
+        }
+      } else {
+        this.pbar = false;
       }
     },
-    uploadImage(hotel, key, i) {
+
+    uploadImage(myRef, key, i) {
       const files = this.Images[i].name;
       const path = key + "/" + files.name;
       storage
@@ -189,9 +203,17 @@ export default {
               .ref(path)
               .getDownloadURL()
               .then((url) => {
-                hotel.child(this.firebasePath + key + "/images/" + i).update({
-                  url: url,
-                });
+                myRef
+                  .child(firebasePath + "/" + key + "/images/" + i)
+                  .update({
+                    by: this.Images[i].by,
+                    url: url,
+                  })
+                  .then(() => {
+                    if (i == this.Images.length - 1) {
+                      this.reset();
+                    }
+                  });
               });
           }
         });
@@ -199,11 +221,16 @@ export default {
 
     addField() {
       this.Images.push({ name: null, by: null, url: null });
-      this.by.push({ by: null });
     },
 
     removeField(i) {
       this.Images.splice(i, 1);
+    },
+    reset() {
+      this.pbar = false;
+      this.Images = [{ name: null, by: null, url: null }];
+      this.$refs.form.reset();
+      this.$refs.form.resetValidation();
     },
   },
 };

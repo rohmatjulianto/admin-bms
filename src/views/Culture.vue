@@ -9,7 +9,7 @@
         height="3"
       ></v-progress-linear>
 
-      <div id="title">Add new Culinary</div>
+      <div id="title">Add new Culture</div>
       <v-form ref="form" v-model="valid" lazy-validation>
         <v-row>
           <v-col cols="12" md="12">
@@ -109,7 +109,7 @@
       <v-row>
         <v-col v-for="(rs, i) in result" :key="rs[i]" cols="6" md="2">
           <v-card class="mx-auto" max-width="344">
-            <v-img v-if="rs.images[0] != null" :src="rs.images[0].url"> </v-img>
+            <v-img v-if="rs.images != null" :src="rs.images[0].url"> </v-img>
             <v-card-title v-text="rs.name" />
             <v-card-subtitle>
               <div class="text--primary">
@@ -124,7 +124,7 @@
 </template>
 <script>
 import { db, storage } from "../firebaseConfig";
-var firebasePath = "culinary/";
+var firebasePath = "culture/";
 export default {
   created() {
     var task = [];
@@ -175,6 +175,8 @@ export default {
       this.valid = false;
       this.pbar = true;
       if (this.$refs.form.validate()) {
+        this.pbar = true;
+
         var myRef = db.ref();
         var key = myRef.push().key;
 
@@ -186,8 +188,8 @@ export default {
         for (let i = 0; i < this.Images.length; i++) {
           this.uploadImage(myRef, key, i);
         }
-      } else {
-        this.pbar = false;
+      }else{
+          this.pbar = false;
       }
     },
 

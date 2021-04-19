@@ -65,6 +65,7 @@
           { title: 'Tourist Desination', icon: 'mdi-map-marker-radius', link:"/destination" },
           { title: 'Tourism Village', icon: 'mdi-home', link:"/desa" },
           { title: 'Art', icon: 'mdi-artstation', link:"/art" },
+          { title: 'Culture', icon: 'mdi-chess-king', link:"/culture" },
           { title: 'Culinary', icon: 'mdi-food', link:"/culinary" },
         ],
         drawer: null
