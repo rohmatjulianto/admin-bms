@@ -6,7 +6,7 @@
     app>
     
     <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-    <v-toolbar-title>Application</v-toolbar-title>      
+    <v-toolbar-title>Visiting Banyumas</v-toolbar-title>      
   </v-app-bar>
 
   <v-navigation-drawer 
@@ -61,7 +61,7 @@
       return {
         items: [
           { title: 'Dashboard', icon: 'mdi-view-dashboard' , link:"/"},
-          { title: 'Accomodation', icon: 'mdi-bed', link:"/hotel" }, 
+          { title: 'Accomodation Hotel', icon: 'mdi-bed', link:"/hotel" }, 
           { title: 'Tourist Desination', icon: 'mdi-map-marker-radius', link:"/destination" },
           { title: 'Tourism Village', icon: 'mdi-home', link:"/desa" },
           { title: 'Art', icon: 'mdi-artstation', link:"/art" },

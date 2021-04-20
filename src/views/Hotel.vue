@@ -1,7 +1,14 @@
 <template>
   <div id="app">
     <v-container>
-      <div id="title">Add new hotel</div>
+      <v-progress-linear
+        color="deep-purple accent-4"
+        indeterminate
+        rounded
+        :active="pbar"
+        height="3"
+      ></v-progress-linear>
+      <div id="title">Add new Hotel</div>
       <v-form ref="form" v-model="valid" lazy-validation>
         <v-row>
           <v-col cols="12" md="12">
@@ -40,7 +47,7 @@
                     small
                     dark
                     color="pink"
-                    v-if="i != Images.length"
+                    v-if="i != Images.length - 1 || i > 0"
                     @click="removeField(i)"
                   >
                     <v-icon dark> mdi-delete </v-icon>
@@ -80,7 +87,7 @@
                   </v-col>
                   <v-col cols="6" md="6">
                     <v-text-field
-                      v-model="by[i]"
+                      v-model="Images[i].by"
                       label="Photo by"
                       :rules="[(v) => !!v || 'Photo by is required']"
                       width="10"
@@ -107,19 +114,17 @@
     <!-- container loop result -->
     <v-container>
       <v-row>
-        <v-col v-for="(hotel, i) in hotels" :key="hotel[i]" cols="6" md="2">
+        <v-col v-for="(rs, i) in result" :key="rs[i]" cols="6" md="2">
           <v-card class="mx-auto" max-width="344">
-            <v-img :src="hotel.images[0].url"> </v-img>
-            <v-card-title v-text="hotel.name" />
+            <v-img v-if="rs.images != null" :src="rs.images[0].url"> </v-img>
+            <v-card-title v-text="rs.name" />
             <v-card-subtitle>
               <div class="text--primary">
-                {{ hotel.address }}
+                {{ rs.address }}
               </div>
             </v-card-subtitle>
             <v-card-actions>
-              <v-icon v-for="n in parseInt(hotel.star)" :key="n"
-                >mdi-star</v-icon
-              >
+              <v-icon v-for="n in parseInt(rs.star)" :key="n">mdi-star</v-icon>
             </v-card-actions>
           </v-card>
         </v-col>
@@ -127,24 +132,26 @@
     </v-container>
   </div>
 </template>
+
 <script>
 import { db, storage } from "../firebaseConfig";
-
+var firebasePath = "hotel/";
 export default {
   created() {
     var task = [];
-    db.ref("hotel/").on("value", function (params) {
+    db.ref(firebasePath).on("value", function (params) {
       task.splice(0);
       params.forEach((element) => {
         var child = element.val();
         task.push(child);
       });
     });
-    this.hotels = task;
+    this.result = task;
   },
 
   data() {
     return {
+      pbar: false,
       valid: true,
       name: "",
       nameRules: [(v) => !!v || "Name is required"],
@@ -153,9 +160,7 @@ export default {
       address: "",
       addressRules: [(v) => !!v || "Address is required"],
       files: null,
-      hotels: [],
-      imageUrl: "",
-      by:[],
+      result: [],
       Images: [
         {
           name: null,
@@ -165,40 +170,53 @@ export default {
       ],
     };
   },
-
   methods: {
     onFilePicked(i) {
       if (window.FileReader) {
         const files = this.Images[i].name;
         const fr = new FileReader();
-
         fr.readAsDataURL(files);
         fr.addEventListener("load", () => {
           this.Images[i].url = fr.result;
         });
       }
     },
+
     onClear(i) {
       this.Images[i].url = null;
     },
+
     validate() {
+      this.valid = false;
+      this.pbar = true;
       if (this.$refs.form.validate()) {
-        var hotel = db.ref();
-        var key = hotel.push().key;
+        this.pbar = true;
 
-        for (let i = 0; i < this.Images.length; i++) {
-          this.uploadImage(hotel, key, i);
-        }
+        var myRef = db.ref();
+        var key = myRef.push().key;
 
-        hotel.child("hotel/" + key).set({
+        myRef.child(firebasePath + key).set({
           name: this.name,
           star: this.star,
           address: this.address,
-          images: this.Images
         });
+
+        for (let i = 0; i < this.Images.length; i++) {
+          this.uploadBy(myRef, key, i)
+          this.uploadImage(myRef, key, i)
+        }
+      } else {
+        this.pbar = false;
       }
     },
-    uploadImage(hotel, key, i) {
+
+    uploadBy(myRef, key, i) {
+      myRef
+        .child(firebasePath + "/" + key + "/images/" + i)
+        .update({ by: this.Images[i].by });
+    },
+
+    uploadImage(myRef, key, i) {
       const files = this.Images[i].name;
       const path = key + "/" + files.name;
       storage
@@ -210,29 +228,33 @@ export default {
               .ref(path)
               .getDownloadURL()
               .then((url) => {
-                hotel
-                  .child("hotel/" + key + "/images/" + i)
+                myRef
+                  .child(firebasePath + "/" + key + "/images/" + i)
                   .update({
-                    url: url
+                    url: url,
                   })
+                  .then(() => {
+                    if (i == this.Images.length - 1) {
+                      this.reset();
+                    }
+                  });
               });
-            // if (i != this.Images.length - 1) {
-            // } else {
-            //   this.Images[i].url = "";
-            //   this.Images[i].name = "";
-            //   this.Images[i].by = "";
-            // }
           }
         });
     },
 
     addField() {
       this.Images.push({ name: null, by: null, url: null });
-      this.by.push({by : null})
     },
 
     removeField(i) {
       this.Images.splice(i, 1);
+    },
+    reset() {
+      this.pbar = false;
+      this.Images = [{ name: null, by: null, url: null }];
+      this.$refs.form.reset();
+      this.$refs.form.resetValidation();
     },
   },
 };

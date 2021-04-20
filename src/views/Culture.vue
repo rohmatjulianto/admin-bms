@@ -186,11 +186,18 @@ export default {
         });
 
         for (let i = 0; i < this.Images.length; i++) {
+          this.uploadBy(myRef, key, i);
           this.uploadImage(myRef, key, i);
         }
-      }else{
-          this.pbar = false;
+      } else {
+        this.pbar = false;
       }
+    },
+
+    uploadBy(myRef, key, i) {
+      myRef
+        .child(firebasePath + "/" + key + "/images/" + i)
+        .update({ by: this.Images[i].by });
     },
 
     uploadImage(myRef, key, i) {
@@ -208,7 +215,6 @@ export default {
                 myRef
                   .child(firebasePath + "/" + key + "/images/" + i)
                   .update({
-                    by: this.Images[i].by,
                     url: url,
                   })
                   .then(() => {

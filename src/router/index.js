@@ -43,7 +43,7 @@ const routes = [
   },
   {
     path: '/culture',
-    name: 'Culinary',
+    name: 'Culture',
     component: Culture
   }
 ]
